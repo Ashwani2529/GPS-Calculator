@@ -2,8 +2,13 @@ import React, { useState } from "react";
 import styles from "./Calculator.module.css";
 import * as math from "mathjs";
 
+
 const Calculator = () => {
   const [display, setDisplay] = useState("");
+
+  const handleInput = (event) => {
+    setDisplay(event.target.value);
+  };
 
   const handleClick = (value) => {
     setDisplay((prevDisplay) => prevDisplay + value);
@@ -19,10 +24,22 @@ const Calculator = () => {
 
   const handleEqual = () => {
     try {
-      const result = math.evaluate(display);
+      const result = math.evaluate(display, {
+        sin: (x) => math.sin(math.unit(x, "deg")),
+        cos: (x) => math.cos(math.unit(x, "deg")),
+        tan: (x) => math.tan(math.unit(x, "deg")),
+        sqrt: math.sqrt,
+        log: math.log,
+      });
       setDisplay(result.toString());
     } catch (error) {
       setDisplay("Error");
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleEqual();
     }
   };
 
@@ -32,12 +49,13 @@ const Calculator = () => {
       <h2>Scientific Calculator</h2>
       <div className={styles.displaybox}>
         <textarea
-        className="display"
+          className="display"
           placeholder="Output"
           cols={26}
           rows={2}
           value={display}
-          readOnly
+          onChange={handleInput}
+          onKeyDown={handleKeyDown}
         />
       </div>
       <div className="buttons my-3">
@@ -69,7 +87,7 @@ const Calculator = () => {
           <button onClick={() => handleClick("0")}>0</button>
           <button onClick={() => handleClick(".")}>.</button>
           <button onClick={() => handleClick("log(")}>log</button>
-         
+
           <button onClick={() => handleClick("+")}>+</button>
         </div>
         <div className="row">
@@ -77,15 +95,13 @@ const Calculator = () => {
           <button onClick={() => handleClick(")")}>)</button>
           <button onClick={() => handleClick("sqrt(")}>√</button>
           <button onClick={handleEqual}>=</button>
-          
         </div>
         <div className="row">
-        <button onClick={handleClear}>C</button>
+          <button onClick={handleClear}>C</button>
           <button onClick={handleBackspace}>Del</button>
         </div>
       </div>
     </div>
   );
 };
-
 export default Calculator;
