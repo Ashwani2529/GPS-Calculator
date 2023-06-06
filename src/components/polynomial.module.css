@@ -1,62 +1,64 @@
 .calc {
-    display: flex;
-    padding: auto;
-    justify-content: space-between;
+  display: flex;
+  padding: auto;
+  justify-content: space-between;
+}
+
+.bizz {
+  border: 0.4px solid black;
+  border-radius: 14px;
+}
+
+.equationBox {
+  width: 48%;
+  height: 480px;
+  padding: 20px;
+  border: 0.5px solid #000000;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.rootsOutput {
+  margin-top: 20px;
+}
+
+.rootsOutput p {
+  font-weight: bold;
+}
+
+.rootsOutput span {
+  margin-right: 10px;
+}
+
+.calculatorInputGroup {
+  margin-top: 7px;
+}
+
+.calculatorInputGroup label {
+  display: inline;
+  width: 30px;
+}
+
+.calculatorInputGroup input {
+  margin-left: 5px;
+}
+
+button {
+  width: 88px;
+}
+
+button[type="submit"] {
+  margin-top: 10px;
+}
+
+@media screen and (max-width: 768px) {
+  .calc {
+    flex-direction: column;
+    align-items: center;
   }
-  .bizz{
-border: 0.4px solid black;
-border-radius: 14px;
-  }
-  
+
   .equationBox {
-    width: 48%;
-    height:480px;
-    padding: 20px;
-    border: 0.5px solid #000000;
-    border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    margin-bottom: 20px;
   }
-  
-  .rootsOutput {
-    margin-top: 20px;
-  }
-  
-  .rootsOutput p {
-    font-weight: bold;
-  }
-  
-  .rootsOutput span {
-    margin-right: 10px;
-  }
-  
-  .calculatorInputGroup {
-    margin-top: 7px;
-  }
-  
-  .calculatorInputGroup label {
-    display: inline;
-    width: 30px;
-  }
-  
-  .calculatorInputGroup input {
-    margin-left: 5px;
-  }
-  button{
-    width: 88px;
-  }
-  button[type="submit"] {
-    margin-top: 10px;
-   
-  }
-  
-  @media screen and (max-width: 768px) {
-    #calculatorWrap {
-      flex-direction: column;
-    }
-  
-    .equationBox {
-      width: 100%;
-      margin-bottom: 20px;
-    }
-  }
-  
+}
