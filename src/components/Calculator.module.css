@@ -36,10 +36,12 @@ h2 {
 }
 
 button {
-  display: inline-block;
-  width: 88px;
+  display: flex;
+  /* width: 88px; */
+  justify-content: space-around;
   height: 40px;
-  margin: 5px;
+  margin: 1px;
+  padding: 4.5px;
   border: none;
   border-radius: 5px;
   background-color: #92dac4;
@@ -74,3 +76,4 @@ button:active {
   background-color: #0b6103;
   color: #fff;
 }
+
