@@ -138,8 +138,9 @@ function PolynomialRootsCalculator() {
               onChange={(event) => setZ(event.target.value)}
             />
           </div>
+          <div className={styles.combobutton}>
           <button className="btn btn-success my-3" type={styles.submit} >Calculate</button>
-          <button type="button" onClick={handleClearInputs1}>Clear</button>
+          <button type="button" onClick={handleClearInputs1}>Clear</button></div>
         </form>
         <div className={styles.rootsOutput}>
           {quadraticRoots.length > 0 ? (
@@ -228,8 +229,9 @@ function PolynomialRootsCalculator() {
               onChange={(event) => setD(event.target.value)}
             />
           </div>
+          <div className={styles.combobutton}>
           <button type={styles.submit} className="btn btn-success my-3" >Calculate</button>
-          <button type="button" onClick={handleClearInputs2}>Clear</button>
+          <button type="button" onClick={handleClearInputs2}>Clear</button></div>
         </form>
         <div className={styles.rootsOutput} >
           {cubicRoots.length > 0 ? (
