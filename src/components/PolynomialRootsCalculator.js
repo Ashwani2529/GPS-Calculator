@@ -233,7 +233,7 @@ function PolynomialRootsCalculator() {
           <button type={styles.submit} className="btn btn-success my-3" >Calculate</button>
           <button type="button" onClick={handleClearInputs2}>Clear</button></div>
         </form>
-        <div className={styles.rootsOutput} >
+        <div className={styles.rootsOutputx} >
           {cubicRoots.length > 0 ? (
             <p>
               The roots of the cubic equation are: {cubicRoots.map((root, index) => (

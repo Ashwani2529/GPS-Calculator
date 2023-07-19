@@ -22,9 +22,17 @@
   margin-top: 20px;
 }
 
+.rootsOutputx {
+  margin-top: -15px;
+  /* margin-bottom: 1rem; */
+}
 .rootsOutput p {
   font-weight: bold;
 }
+.rootsOutputx p {
+  font-weight: bold;
+}
+
 
 .rootsOutput span {
   margin-right: 10px;
