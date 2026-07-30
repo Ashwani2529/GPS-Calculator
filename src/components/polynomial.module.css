@@ -1,86 +1,249 @@
-.calc {
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Degree stepper */
+.degreeLabel {
   display: flex;
-  padding: auto;
+  align-items: center;
   justify-content: space-between;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 18px;
 }
 
-.bizz {
-  border: 0.4px solid black;
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.stepper button {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.stepper button:hover:not(:disabled) {
+  background: var(--accent-1);
+  color: #fff;
+}
+.stepper button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.stepper span {
+  min-width: 40px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Equation preview */
+.eqPreview {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  text-align: center;
+  color: var(--accent-3);
+  background: rgba(46, 230, 214, 0.08);
+  border: 1px solid rgba(46, 230, 214, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+/* Coefficient inputs */
+.coeffGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 12px;
+}
+
+.coeffField {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.coeffInput {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.coeffInput:focus {
+  border-color: var(--accent-1);
+  box-shadow: var(--ring);
+}
+
+.coeffLabel {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.solveBtn {
+  flex: 2;
+  padding: 14px;
+  border: none;
   border-radius: 14px;
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(124, 92, 255, 0.45);
+  transition: filter 0.2s, transform 0.1s;
+}
+.solveBtn:hover {
+  filter: brightness(1.08);
+}
+.solveBtn:active {
+  transform: scale(0.98);
 }
 
-.equationBox {
-  width: 48%;
-  height: 480px;
-  padding: 20px;
-  border: 0.5px solid #000000;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+.clearBtn {
+  flex: 1;
+  padding: 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.clearBtn:hover {
+  background: rgba(255, 90, 110, 0.12);
+  color: var(--danger);
 }
 
-.rootsOutput {
-  margin-top: 20px;
+/* Results */
+.resultTitle {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  margin: 0 0 16px;
 }
 
-.rootsOutputx {
-  margin-top: -15px;
-  /* margin-bottom: 1rem; */
+.placeholder,
+.warn {
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
-.rootsOutput p {
-  font-weight: bold;
+.placeholder {
+  color: var(--text-faint);
 }
-.rootsOutputx p {
-  font-weight: bold;
-}
-
-
-.rootsOutput span {
-  margin-right: 10px;
+.warn {
+  color: var(--accent-4);
 }
 
-.calculatorInputGroup {
-  margin-top: 7px;
-}
-
-.calculatorInputGroup label {
-  display: inline;
-  width: 30px;
-}
-
-.calculatorInputGroup input {
-  margin-left: 5px;
-}
-
-
-button {
-  width: 88px;
-}
-.combobutton {
+.rootsList {
   display: flex;
-  justify-content: center;
-  margin-top: 10px;
-  margin-right: 11px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.combobutton button {
+.rootCard {
   display: flex;
- align-items: center;
-  margin-top: 14.7px;
-  margin-left: 25px;
-}
-button[type="submit"] {
-  margin-top: 10px;
-  
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  animation: pop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@media screen and (max-width: 768px) {
-  .calc {
-    flex-direction: column;
-    align-items: center;
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
   }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
-  .equationBox {
-    width: 90%;
-    margin-bottom: 20px;
+.rootIndex {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent-1);
+  min-width: 34px;
+}
+
+.rootValue {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.rootTag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tagReal {
+  background: rgba(53, 226, 154, 0.15);
+  color: var(--success);
+}
+.tagComplex {
+  background: rgba(255, 92, 168, 0.15);
+  color: var(--accent-2);
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
   }
 }

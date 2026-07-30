@@ -1,14 +1,136 @@
-body {
-  background-color: rgb(204, 201, 238);
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+/* ============================================================
+   GPS Calculator — Global Design System
+   ============================================================ */
+
+:root {
+  /* Core palette */
+  --bg-0: #070b1a;
+  --bg-1: #0b1026;
+  --bg-2: #111634;
+
+  /* Glass surfaces */
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-strong: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-strong: rgba(255, 255, 255, 0.24);
+
+  /* Text */
+  --text: #eaf0ff;
+  --text-dim: #a6b0d4;
+  --text-faint: #6b769e;
+
+  /* Accents */
+  --accent-1: #7c5cff; /* violet   */
+  --accent-2: #ff5ca8; /* pink     */
+  --accent-3: #2ee6d6; /* cyan     */
+  --accent-4: #ffb347; /* amber    */
+  --danger: #ff5a6e;
+  --success: #35e29a;
+
+  --grad-brand: linear-gradient(135deg, #7c5cff 0%, #ff5ca8 55%, #ffb347 100%);
+  --grad-cool: linear-gradient(135deg, #2ee6d6 0%, #7c5cff 100%);
+
+  /* Shape */
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 26px;
+
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 30px rgba(124, 92, 255, 0.35);
+
+  --ring: 0 0 0 3px rgba(124, 92, 255, 0.35);
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg-0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Animated aurora background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  background:
+    radial-gradient(45% 45% at 15% 20%, rgba(124, 92, 255, 0.35), transparent 60%),
+    radial-gradient(40% 40% at 85% 15%, rgba(255, 92, 168, 0.30), transparent 60%),
+    radial-gradient(50% 50% at 75% 85%, rgba(46, 230, 214, 0.25), transparent 60%),
+    radial-gradient(40% 40% at 20% 90%, rgba(255, 179, 71, 0.20), transparent 60%);
+  filter: blur(30px);
+  animation: aurora 22s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(7, 11, 26, 0.4) 0%, rgba(7, 11, 26, 0.85) 100%);
+}
+
+@keyframes aurora {
+  0% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, 2%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-2%, 3%, 0) scale(1.03);
+  }
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-mono);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 92, 255, 0.35);
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 92, 255, 0.6);
+}
+
+/* Utility gradient text */
+.gradient-text {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
 }

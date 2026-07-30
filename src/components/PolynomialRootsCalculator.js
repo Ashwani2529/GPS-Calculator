@@ -1,252 +1,241 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from "react";
 import styles from "./polynomial.module.css";
 
-function PolynomialRootsCalculator() {
-  const [a, setA] = useState('');
-  const [b, setB] = useState('');
-  const [c, setC] = useState('');
-  const [d, setD] = useState('');
-  const [x, setX] = useState('');
-  const [y, setY] = useState('');
-  const [z, setZ] = useState('');
-  const [quadraticRoots, setQuadraticRoots] = useState([]);
-  const [cubicRoots, setCubicRoots] = useState([]);
+/* ---------- minimal complex arithmetic ---------- */
+const cAdd = (a, b) => ({ re: a.re + b.re, im: a.im + b.im });
+const cSub = (a, b) => ({ re: a.re - b.re, im: a.im - b.im });
+const cMul = (a, b) => ({
+  re: a.re * b.re - a.im * b.im,
+  im: a.re * b.im + a.im * b.re,
+});
+const cDiv = (a, b) => {
+  const d = b.re * b.re + b.im * b.im;
+  return { re: (a.re * b.re + a.im * b.im) / d, im: (a.im * b.re - a.re * b.im) / d };
+};
+const cAbs = (a) => Math.hypot(a.re, a.im);
 
-  const solveQuadraticEquation = () => {
-    const coefficientX = parseFloat(x);
-    const coefficientY = parseFloat(y);
-    const coefficientZ = parseFloat(z);
+/* ---------- Durand-Kerner root finder (any degree) ---------- */
+const solvePolynomial = (coeffs) => {
+  let c = coeffs.slice();
+  while (c.length > 1 && Math.abs(c[0]) < 1e-14) c.shift(); // trim leading zeros
+  const n = c.length - 1;
+  if (n < 1) return [];
 
-    const discriminant = coefficientY* coefficientY- 4 * coefficientX * coefficientZ;
+  const lead = c[0];
+  const monic = c.map((v) => v / lead);
 
-    if (discriminant > 0) {
-      const rootOne = (-coefficientY + Math.sqrt(discriminant)) / (2 * coefficientX);
-      const rootTwo = (-coefficientY - Math.sqrt(discriminant)) / (2 * coefficientX);
-      setQuadraticRoots([rootOne, rootTwo]);
-    } else if (discriminant === 0) {
-      const root = -coefficientY / (2 * coefficientX);
-      setQuadraticRoots([root]);
-    } else {
-      setQuadraticRoots([]);
+  const evalP = (z) => {
+    let r = { re: monic[0], im: 0 };
+    for (let i = 1; i < monic.length; i++) {
+      r = cAdd(cMul(r, z), { re: monic[i], im: 0 });
     }
+    return r;
   };
 
-  const solveCubicEquation = () => {
-    const coefficientA = parseFloat(a);
-    const coefficientB = parseFloat(b);
-    const coefficientC = parseFloat(c);
-    const coefficientD = parseFloat(d);
+  // spread initial guesses around the complex plane
+  let roots = [];
+  let p = { re: 1, im: 0 };
+  const seed = { re: 0.4, im: 0.9 };
+  for (let k = 0; k < n; k++) {
+    roots.push({ ...p });
+    p = cMul(p, seed);
+  }
 
-    if (coefficientA === 0) {
-      throw new Error('This is not a cubic equation');
+  for (let iter = 0; iter < 500; iter++) {
+    let maxDelta = 0;
+    for (let i = 0; i < n; i++) {
+      const num = evalP(roots[i]);
+      let denom = { re: 1, im: 0 };
+      for (let j = 0; j < n; j++) {
+        if (i !== j) denom = cMul(denom, cSub(roots[i], roots[j]));
+      }
+      if (cAbs(denom) < 1e-300) continue;
+      const delta = cDiv(num, denom);
+      roots[i] = cSub(roots[i], delta);
+      maxDelta = Math.max(maxDelta, cAbs(delta));
     }
+    if (maxDelta < 1e-14) break;
+  }
+  return roots;
+};
 
-    const delta0 = coefficientB ** 2 - 3 * coefficientA * coefficientC;
-    const delta1 = 2 * coefficientB ** 3 - 9 * coefficientA * coefficientB * coefficientC + 27 * coefficientA ** 2 * coefficientD;
-    const C = Math.cbrt((delta1 + Math.sqrt(delta1 ** 2 - 4 * delta0 ** 3)) / 2);
+/* ---------- formatting ---------- */
+const trim = (x) => {
+  const r = parseFloat(x.toPrecision(10));
+  return Object.is(r, -0) ? 0 : r;
+};
 
-    const roots = [];
+const formatRoot = (root) => {
+  const re = trim(root.re);
+  const im = trim(root.im);
+  const isReal = Math.abs(im) < 1e-9;
+  if (isReal) return { text: String(re), real: true };
+  const sign = im >= 0 ? "+" : "−";
+  return { text: `${re} ${sign} ${Math.abs(im)}i`, real: false };
+};
 
-    for (let k = 0; k < 3; k++) {
-      const omega = (-1 / 2) + (Math.sqrt(3) / 2) * (k === 2 ? -1 : 1);
-      const x = (-1 / (3 * coefficientA)) * (coefficientB + omega * C + (delta0 / (omega * C)));
-      roots.push(x);
+const superscript = (n) => {
+  const map = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+  return String(n).split("").map((d) => map[d]).join("");
+};
+
+const MIN_DEG = 1;
+const MAX_DEG = 10;
+
+const PolynomialRootsCalculator = () => {
+  const [degree, setDegree] = useState(2);
+  const [coeffs, setCoeffs] = useState(() => ["1", "", ""]); // highest -> lowest
+  const [roots, setRoots] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const resize = (deg) => {
+    setDegree(deg);
+    setCoeffs((prev) => {
+      const size = deg + 1;
+      const next = new Array(size).fill("");
+      for (let i = 0; i < size; i++) {
+        // keep values aligned to the leading coefficient
+        const oldIdx = prev.length - size + i;
+        if (oldIdx >= 0 && oldIdx < prev.length) next[i] = prev[oldIdx];
+      }
+      if (!next[0]) next[0] = "1";
+      return next;
+    });
+    setRoots(null);
+    setMessage("");
+  };
+
+  const setCoeff = (idx, val) => {
+    if (!/^-?\d*\.?\d*$/.test(val)) return;
+    setCoeffs((prev) => prev.map((c, i) => (i === idx ? val : c)));
+  };
+
+  const equationText = useMemo(() => {
+    const parts = [];
+    coeffs.forEach((c, i) => {
+      const power = degree - i;
+      const val = c === "" || c === "-" ? "a" : c;
+      const varPart =
+        power === 0 ? "" : power === 1 ? "x" : `x${superscript(power)}`;
+      parts.push(`${val}${varPart}`);
+    });
+    return parts.join(" + ").replace(/\+ -/g, "− ") + " = 0";
+  }, [coeffs, degree]);
+
+  const handleSolve = (e) => {
+    e.preventDefault();
+    const nums = coeffs.map((c) => (c === "" || c === "-" ? 0 : parseFloat(c)));
+    if (nums.every((v) => v === 0)) {
+      setMessage("Please enter at least one non-zero coefficient.");
+      setRoots(null);
+      return;
     }
-
-    setCubicRoots(roots);
+    if (Math.abs(nums[0]) < 1e-14) {
+      setMessage("The leading coefficient can't be zero for a degree-" + degree + " equation.");
+      setRoots(null);
+      return;
+    }
+    const result = solvePolynomial(nums).map(formatRoot);
+    setRoots(result);
+    setMessage("");
   };
 
-  const handleCalculateQuadraticRoots = (event) => {
-    event.preventDefault();
-    solveQuadraticEquation();
-  };
-  const handleClearInputs2 = () => {
-    setA('');
-    setB('');
-    setC('');
-    setD('');
-    setCubicRoots([]);
-  };
-  const handleClearInputs1 = () => {
-    setX('');
-    setY('');
-    setZ('');
-    setQuadraticRoots([]);
-   
-  };
-
-  const handleCalculateCubicRoots = (event) => {
-    event.preventDefault();
-    solveCubicEquation();
+  const handleClear = () => {
+    setCoeffs(new Array(degree + 1).fill("").map((_, i) => (i === 0 ? "1" : "")));
+    setRoots(null);
+    setMessage("");
   };
 
   return (
-    <div className={styles.calc} id="calculatorWrap my-2">
-      <div id="quadratic" className={styles.equationBox}>
-        <h2>Quadratic Equation Solver</h2>
-       <div className={styles.bizz} ><span style={{ fontSize: '1.2em' }}>
-        <span style={{ verticalAlign: 'middle' }}>a</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>x<sup>2</sup></span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>+</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>b</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>x</span>    
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>+</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>c</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>=</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>0</span>
-      </span></div>
-        <form onSubmit={handleCalculateQuadraticRoots}>
-          <div className={styles.calculatorInputGroup} my-3>
-          <label htmlFor="a">a =</label>
-            <input
-              name="a"
-              id="a"
-              value={x}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient a"
-              required
-              onChange={(event) => setX(event.target.value)}
-            />
-          </div>
-          <div className={styles.calculatorInputGroup} my-3>
-            <label htmlFor="b">b =</label>
-            <input
-              name="b"
-              id="b"
-              value={y}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient b"
-              required
-              onChange={(event) => setY(event.target.value)}
-            />
-          </div>
-          <div className={styles.calculatorInputGroup} my-3>
-            <label htmlFor="c">c =</label>
-            <input
-              name="c"
-              id="c"
-              value={z}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient c"
-              required
-              onChange={(event) => setZ(event.target.value)}
-            />
-          </div>
-          <div className={styles.combobutton}>
-          <button className="btn btn-success my-3" type={styles.submit} >Calculate</button>
-          <button type="button" onClick={handleClearInputs1}>Clear</button></div>
-        </form>
-        <div className={styles.rootsOutput}>
-          {quadraticRoots.length > 0 ? (
-            <p>
-              The roots of the quadratic equation are: {quadraticRoots.map((root, index) => (
-                <span key={index}>{root.toFixed(2)}</span>
-              ))}
-            </p>
-          ) : (
-            <p>No real roots exist.</p>
-          )}
-        </div>
+    <div>
+      <div className="page-head">
+        <h1 className="gradient-text">Polynomial Solver</h1>
+        <p>Find every root — real and complex — for any equation up to degree {MAX_DEG}</p>
       </div>
 
-      <div id="cubic" className={styles.equationBox} >
-        <h2>Cubic Equation Solver</h2>
-        <div className={styles.bizz}  ><span style={{ fontSize: '1.2em' }}>
-        <span style={{ verticalAlign: 'middle' }}>a</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>x<sup>3</sup></span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>+</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>b</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>x<sup>2</sup></span>
-              
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>+</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>c</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>x</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>+</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>d</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>=</span>
-        <span style={{ verticalAlign: 'middle', paddingLeft: '5px' }}>0</span>
-      </span></div>
-        <form onSubmit={handleCalculateCubicRoots}>
-        <div className={styles.calculatorInputGroup} my-3>
-            <label htmlFor="a">a =</label>
-            <input
-              name="a"
-              id="a"
-              value={a}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient a"
-              required
-              onChange={(event) => setA(event.target.value)}
-            />
+      <div className={styles.layout}>
+        <form className={styles.panel} onSubmit={handleSolve}>
+          <label className={styles.degreeLabel}>
+            Degree
+            <div className={styles.stepper}>
+              <button
+                type="button"
+                onClick={() => degree > MIN_DEG && resize(degree - 1)}
+                disabled={degree <= MIN_DEG}
+              >
+                −
+              </button>
+              <span>{degree}</span>
+              <button
+                type="button"
+                onClick={() => degree < MAX_DEG && resize(degree + 1)}
+                disabled={degree >= MAX_DEG}
+              >
+                +
+              </button>
+            </div>
+          </label>
+
+          <div className={styles.eqPreview}>{equationText}</div>
+
+          <div className={styles.coeffGrid}>
+            {coeffs.map((c, i) => {
+              const power = degree - i;
+              return (
+                <div key={i} className={styles.coeffField}>
+                  <input
+                    className={styles.coeffInput}
+                    value={c}
+                    inputMode="decimal"
+                    placeholder="0"
+                    onChange={(e) => setCoeff(i, e.target.value)}
+                  />
+                  <span className={styles.coeffLabel}>
+                    {power === 0 ? "const" : power === 1 ? "x" : `x${superscript(power)}`}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          <div className={styles.calculatorInputGroup} my-3>
-            <label htmlFor="b">b =</label>
-            <input
-              name="b"
-              id="b"
-              value={b}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient b"
-              required
-              onChange={(event) => setB(event.target.value)}
-            />
+
+          <div className={styles.actions}>
+            <button type="submit" className={styles.solveBtn}>
+              Solve
+            </button>
+            <button type="button" className={styles.clearBtn} onClick={handleClear}>
+              Clear
+            </button>
           </div>
-          <div className={styles.calculatorInputGroup} my-3>
-            <label htmlFor="c">c =</label>
-            <input
-              name="c"
-              id="c"
-              value={c}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient c"
-              required
-              onChange={(event) => setC(event.target.value)}
-            />
-          </div>
-          <div className={styles.calculatorInputGroup} my-3>
-            <label htmlFor="d">d =</label>
-            <input
-              name="d"
-              id="d"
-              value={d}
-              className="nmbr_real real my-2"
-              type="text"
-              title="real number"
-              placeholder="coefficient d"
-              required
-              onChange={(event) => setD(event.target.value)}
-            />
-          </div>
-          <div className={styles.combobutton}>
-          <button type={styles.submit} className="btn btn-success my-3" >Calculate</button>
-          <button type="button" onClick={handleClearInputs2}>Clear</button></div>
         </form>
-        <div className={styles.rootsOutputx} >
-          {cubicRoots.length > 0 ? (
-            <p>
-              The roots of the cubic equation are: {cubicRoots.map((root, index) => (
-                <span key={index}>{root.toFixed(2)}</span>
-              ))}
+
+        <div className={styles.panel}>
+          <h3 className={styles.resultTitle}>Roots</h3>
+          {message && <p className={styles.warn}>{message}</p>}
+          {!message && roots === null && (
+            <p className={styles.placeholder}>
+              Enter your coefficients and press <strong>Solve</strong> to see the roots.
             </p>
-          ) : (
-            <p>No real roots exist.</p>
+          )}
+          {!message && roots && roots.length === 0 && (
+            <p className={styles.placeholder}>No roots found.</p>
+          )}
+          {!message && roots && roots.length > 0 && (
+            <div className={styles.rootsList}>
+              {roots.map((r, i) => (
+                <div key={i} className={styles.rootCard}>
+                  <span className={styles.rootIndex}>x{superscript(i + 1)}</span>
+                  <span className={styles.rootValue}>{r.text}</span>
+                  <span className={`${styles.rootTag} ${r.real ? styles.tagReal : styles.tagComplex}`}>
+                    {r.real ? "real" : "complex"}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default PolynomialRootsCalculator;

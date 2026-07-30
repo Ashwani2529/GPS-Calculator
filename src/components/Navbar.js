@@ -1,40 +1,56 @@
-import React, { useEffect } from "react";
-import "../index.css";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
+import styles from "./Navbar.module.css";
 
-const Navbar = (props) => {
-  const navigate = useNavigate();
+const links = [
+  { to: "/", label: "Scientific", short: "S", end: true },
+  { to: "/GraphingCalculator", label: "Graphing", short: "G", end: false },
+  { to: "/PolynomialRootsCalculator", label: "Polynomial", short: "P", end: false },
+];
 
-  useEffect(() => {
-    console.log(window.location.pathname);
-  }, []);
+const Navbar = () => {
+  const [open, setOpen] = useState(false);
 
-  const handleGraphingCalculatorClick = () => {
-    navigate("/GraphingCalculator");
-  };
-  const handlePolyCalculatorClick = () => {
-    navigate("/PolynomialRootsCalculator");
-  };
-
-
-  const handleCalculatorClick = () => {
-    navigate("/");
-  };
+  const linkClass = ({ isActive }) =>
+    `${styles.link} ${isActive ? styles.active : ""}`;
 
   return (
-    <nav className={`navbar navbar-expand-lg navbar-${props.mode} bg-${props.mode}`}>
-      <div className="container-fluid">
-        <button className="btn btn-primary mx-1" onClick={handleGraphingCalculatorClick} style={{ borderRadius: '8px', padding: '8px 16px', fontSize: '16px' }}>
-          G-Cal
+    <header className={styles.navWrap}>
+      <nav className={styles.nav}>
+        <NavLink to="/" className={styles.brand} onClick={() => setOpen(false)}>
+          <span className={styles.brandMark}>∑</span>
+          <span className={styles.brandText}>
+            GPS<span className={styles.brandDot}>·</span>Calc
+          </span>
+        </NavLink>
+
+        <button
+          className={styles.burger}
+          aria-label="Toggle navigation"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span style={{ transform: open ? "translateY(6px) rotate(45deg)" : "" }} />
+          <span style={{ opacity: open ? 0 : 1 }} />
+          <span style={{ transform: open ? "translateY(-6px) rotate(-45deg)" : "" }} />
         </button>
-        <button className="btn btn-primary mx-1" onClick={handlePolyCalculatorClick} style={{ borderRadius: '8px', padding: '8px 16px', fontSize: '16px' }}>
-        P-Cal
-        </button>
-        <button className="btn btn-primary mx-1" onClick={handleCalculatorClick} style={{ borderRadius: '8px', padding: '8px 16px', fontSize: '16px' }}>
-        S-Cal
-        </button>
-      </div>
-    </nav>
+
+        <div className={`${styles.links} ${open ? styles.linksOpen : ""}`}>
+          {links.map((l) => (
+            <NavLink
+              key={l.to}
+              to={l.to}
+              end={l.end}
+              className={linkClass}
+              onClick={() => setOpen(false)}
+            >
+              <span className={styles.linkBadge}>{l.short}</span>
+              {l.label}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+    </header>
   );
 };
 
